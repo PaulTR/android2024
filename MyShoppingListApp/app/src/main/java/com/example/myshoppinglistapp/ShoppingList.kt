@@ -66,8 +66,31 @@ fun ShoppingListApp() {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            items(sItems) {
-                ShoppingListItem(it, {}, {})
+            items(sItems) { item ->
+                if (item.isEditing) {
+                    ShoppingItemEditor(item = item, onEditComplete = { editedName, editedQuantity ->
+                        sItems = sItems.map { it.copy(isEditing = false) }
+                        val editedItem = sItems.find { it.id == item.id }
+                        editedItem?.let {
+                            it.name = editedName
+                            it.quantity = editedQuantity
+                        }
+                    })
+                } else {
+                    ShoppingListItem(
+                        item,
+                        onEditClick = {
+                            sItems = sItems.map {
+                                it.copy(
+                                    isEditing = it.id == item.id
+                                )
+                            }
+                        },
+                        {
+                            sItems = sItems-item
+                        },
+                    )
+                }
             }
         }
     }
@@ -144,45 +167,56 @@ fun ShoppingListItem(
             .fillMaxWidth()
             .border(border = BorderStroke(2.dp, Color.Cyan), shape = RoundedCornerShape(20))
     ) {
-        Text(text=shoppingItem.name, modifier=Modifier.padding(8.dp))
-        Text(text="Qty: ${shoppingItem.quantity}", modifier=Modifier.padding(8.dp))
+        Text(text = shoppingItem.name, modifier = Modifier.padding(8.dp))
+        Text(text = "Qty: ${shoppingItem.quantity}", modifier = Modifier.padding(8.dp))
         Row(modifier = Modifier.padding(8.dp)) {
             IconButton(onClick = onEditClick) {
-                Icon(imageVector = Icons.Default.Edit, contentDescription = "Accessibility example text")
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Accessibility example text"
+                )
             }
 
             IconButton(onClick = onDeleteClick) {
-                Icon(imageVector = Icons.Default.Delete, contentDescription = "Accessibility example text")
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Accessibility example text"
+                )
             }
         }
     }
 }
 
 @Composable
-fun ShoppingItemEditor(item: ShoppingItem, onEditComplete: (String, Int) -> Unit){
+fun ShoppingItemEditor(item: ShoppingItem, onEditComplete: (String, Int) -> Unit) {
     var editedName by remember { mutableStateOf(item.name) }
     var editedQuantity by remember { mutableStateOf(item.quantity.toString()) }
     var isEditing by remember { mutableStateOf(item.isEditing) }
 
-    Row(modifier = Modifier
-        .fillMaxWidth()
-        .background(Color.White)
-        .padding(8.dp),
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White)
+            .padding(8.dp),
         horizontalArrangement = Arrangement.SpaceEvenly
     )
     {
         Column {
             BasicTextField(
-                value= editedName,
-                onValueChange = {editedName = it},
+                value = editedName,
+                onValueChange = { editedName = it },
                 singleLine = true,
-                modifier = Modifier.wrapContentSize().padding(8.dp)
+                modifier = Modifier
+                    .wrapContentSize()
+                    .padding(8.dp)
             )
             BasicTextField(
-                value= editedQuantity,
-                onValueChange = {editedQuantity = it},
+                value = editedQuantity,
+                onValueChange = { editedQuantity = it },
                 singleLine = true,
-                modifier = Modifier.wrapContentSize().padding(8.dp)
+                modifier = Modifier
+                    .wrapContentSize()
+                    .padding(8.dp)
             )
         }
 
@@ -191,7 +225,7 @@ fun ShoppingItemEditor(item: ShoppingItem, onEditComplete: (String, Int) -> Unit
                 isEditing = false
                 onEditComplete(editedName, editedQuantity.toIntOrNull() ?: 1)
             }
-        ){
+        ) {
             Text("Save")
         }
     }
